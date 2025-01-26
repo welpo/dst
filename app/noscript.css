@@ -1,0 +1,21 @@
+.js-warning {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    padding: 24px;
+    background: var(--background);
+    color: var(--text-primary);
+}
+
+.js-warning p:first-child {
+    font-size: 24px;
+    margin-bottom: 16px;
+}
+
+.container,
+.app-footer {
+    display: none;
+}
