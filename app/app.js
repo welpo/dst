@@ -54,8 +54,16 @@ function areInDifferentDSTStates(date1, date2) {
 }
 
 function isDst(date) {
-  const jan = new Date(date.getFullYear(), 0, 1).getTimezoneOffset();
-  return date.getTimezoneOffset() < jan;
+  const sixMonthsAgo = new Date(date);
+  sixMonthsAgo.setMonth(date.getMonth() - 6);
+  const lastChange = findTimeOffsetChange(sixMonthsAgo, date);
+  if (!lastChange) {
+    return false; // No DST in this timezone
+  }
+  // If we're after the change:
+  // - If it was spring forward (+X), we're in DST.
+  // - If it was fall back (-X), we're in Standard Time.
+  return lastChange.offsetChange > 0;
 }
 
 function formatTimeRemaining(msRemaining) {
@@ -64,9 +72,7 @@ function formatTimeRemaining(msRemaining) {
   const parts = [];
   if (days > 0) parts.push(`${days} day${days !== 1 ? "s" : ""}`);
   if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
-  return parts.length
-    ? `${parts.join(" and ")}`
-    : "Less than an hour";
+  return parts.length ? `${parts.join(" and ")}` : "Less than an hour";
 }
 
 function renderClockChange(change) {
@@ -95,7 +101,7 @@ function renderClockChange(change) {
   });
 
   const twoWeeksInMs = 14 * 24 * 60 * 60 * 1000;
-  const showNemui = (change.date - now) < twoWeeksInMs;
+  const showNemui = change.date - now < twoWeeksInMs;
 
   return `
     <div class="clock-change">
@@ -124,15 +130,23 @@ function renderClockChange(change) {
         </div>
         <p class="description">
           While you sleep through ${dateStr}, you'll
-          <span class="${change.offsetChange > 0 ? 'time-loss' : 'time-gain'}">${change.offsetChange > 0 ? "lose" : "gain"}</span> an hour of sleep.
+          <span class="${
+            change.offsetChange > 0 ? "time-loss" : "time-gain"
+          }">${
+    change.offsetChange > 0 ? "lose" : "gain"
+  }</span> an hour of sleep.
           ${isTonight ? '<span class="tonight">That\'s tonight!</span>' : ""}
         </p>
-        ${showNemui ? `<p class="sleep-advice">
+        ${
+          showNemui
+            ? `<p class="sleep-advice">
           Want to avoid the abrupt change? Try
           <a href="https://nemui.osc.garden" class="advice-link">nemui</a> with matching "current" and "desired" schedules.
-        </p>` : `<p class="countdown">
+        </p>`
+            : `<p class="countdown">
           Change happening in ${formatTimeRemaining(change.date - now)}.
-        </p>`}
+        </p>`
+        }
       </div>
     </div>
   `;
@@ -186,7 +200,6 @@ function formatTimeChange(offsetChange, changeDate) {
   };
 }
 
-// Initial update and set interval
 updateDisplay();
 document.getElementById("userTimezone").textContent = Intl.DateTimeFormat()
   .resolvedOptions()
