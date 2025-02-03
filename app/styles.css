@@ -245,12 +245,9 @@ a:focus {
     }
 
     .calendar-container {
+        padding: 0;
         width: min(100px, 30%);
         min-width: 80px;
-    }
-
-    .calendar-container {
-        width: 100px;
     }
 
     .info {
