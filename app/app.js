@@ -203,4 +203,4 @@ function formatTimeChange(offsetChange, changeDate) {
 updateDisplay();
 document.getElementById("userTimezone").textContent = Intl.DateTimeFormat()
   .resolvedOptions()
-  .timeZone.replace(/_/g, " ");
+  .timeZone;
